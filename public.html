@@ -5,93 +5,98 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tirage officiel</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #0f172a, #111827);
-      color: white;
-      margin: 0;
-      padding: 20px;
+    body{
+      font-family:Arial,sans-serif;
+      background:linear-gradient(180deg,#0f172a,#111827);
+      color:white;
+      margin:0;
+      padding:20px;
     }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
+    .container{
+      max-width:1100px;
+      margin:0 auto;
     }
-    .hero, .card, .poule {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.22);
-      backdrop-filter: blur(6px);
+    .hero,.card,.poule{
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      box-shadow:0 8px 24px rgba(0,0,0,.22);
+      backdrop-filter:blur(6px);
     }
-    .hero {
-      padding: 24px;
-      text-align: center;
-      margin-bottom: 20px;
+    .hero{
+      padding:24px;
+      text-align:center;
+      margin-bottom:20px;
     }
-    .hero h1 {
-      margin: 0 0 8px;
+    .card{
+      padding:24px;
+      margin-bottom:20px;
+      text-align:center;
     }
-    .hero p {
-      margin: 0;
-      color: #cbd5e1;
+    .roulette{
+      font-size:32px;
+      font-weight:bold;
+      min-height:44px;
+      margin:18px 0;
+      color:#facc15;
     }
-    .card {
-      padding: 24px;
-      margin-bottom: 20px;
-      text-align: center;
+    .draw-log{
+      text-align:left;
+      max-width:700px;
+      margin:20px auto 0;
+      color:#e5e7eb;
+      line-height:1.8;
     }
-    .roulette {
-      font-size: 28px;
-      font-weight: bold;
-      min-height: 40px;
-      margin: 18px 0;
-      color: #facc15;
+    .poules{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:16px;
     }
-    .draw-log {
-      text-align: left;
-      max-width: 600px;
-      margin: 20px auto 0;
-      color: #e5e7eb;
-      line-height: 1.8;
+    .poule{
+      padding:18px;
     }
-    .poules {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
+    .poule h2{
+      text-align:center;
+      margin-top:0;
     }
-    .poule {
-      padding: 18px;
+    ul{
+      padding-left:20px;
+      margin-bottom:0;
     }
-    .poule h2 {
-      text-align: center;
-      margin-top: 0;
+    li{
+      margin-bottom:8px;
     }
-    ul {
-      padding-left: 20px;
-      margin-bottom: 0;
+    .hidden{display:none;}
+    .footer{
+      margin-top:20px;
+      text-align:center;
+      color:#cbd5e1;
+      font-size:14px;
     }
-    li {
-      margin-bottom: 8px;
+    .replay-btn{
+      background:#facc15;
+      color:#111827;
+      border:none;
+      border-radius:10px;
+      padding:12px 18px;
+      font-size:16px;
+      cursor:pointer;
+      font-weight:bold;
+      margin-top:14px;
     }
-    .hidden {
-      display: none;
+    .waiting{
+      font-size:22px;
+      color:#cbd5e1;
+      line-height:1.6;
     }
-    .footer {
-      margin-top: 20px;
-      text-align: center;
-      color: #cbd5e1;
-      font-size: 14px;
-    }
-    .replay-btn {
-      background: #facc15;
-      color: #111827;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-top: 14px;
+    .live-badge{
+      display:inline-block;
+      background:#dc2626;
+      color:white;
+      padding:6px 12px;
+      border-radius:999px;
+      font-weight:bold;
+      margin-bottom:12px;
     }
   </style>
 </head>
@@ -99,11 +104,12 @@
   <div class="container">
     <div class="hero">
       <h1>Tirage officiel des poules</h1>
-      <p>Replay du tirage public</p>
+      <p>Diffusion publique du tirage</p>
     </div>
 
     <div class="card">
-      <div id="status">Préparation du replay…</div>
+      <div id="statusArea" class="waiting">Chargement…</div>
+      <div id="liveBadge" class="live-badge hidden">EN DIRECT</div>
       <div id="roulette" class="roulette"></div>
       <div id="drawLog" class="draw-log"></div>
       <button id="replayBtn" class="replay-btn hidden">Rejouer l’animation</button>
@@ -124,71 +130,44 @@
       </div>
     </div>
 
-    <div class="footer">Page publique de tirage</div>
+    <div class="footer">Page publique du tirage</div>
   </div>
 
-  <script>
-    let tirageData = null;
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      get
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-    function parseData() {
-      const params = new URLSearchParams(window.location.search);
-      const raw = params.get("data");
-      if (!raw) return null;
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeLh-JXNithWyTut5dWMCYLn_tO_FsgjQ",
+      authDomain: "tirage-ligue-equipes.firebaseapp.com",
+      databaseURL: "https://tirage-ligue-equipes-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "tirage-ligue-equipes",
+      storageBucket: "tirage-ligue-equipes.firebasestorage.app",
+      messagingSenderId: "801813158938",
+      appId: "1:801813158938:web:de76fb9b7758249c5a85a3"
+    };
 
-      try {
-        return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(raw)))));
-      } catch (e) {
-        return null;
-      }
-    }
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const tirageRef = ref(db, "tirage");
 
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    const statusArea = document.getElementById("statusArea");
+    const liveBadge = document.getElementById("liveBadge");
+    const roulette = document.getElementById("roulette");
+    const drawLog = document.getElementById("drawLog");
+    const replayBtn = document.getElementById("replayBtn");
+    const poulesSection = document.getElementById("poulesSection");
 
-    async function jouerAnimation() {
-      const status = document.getElementById("status");
-      const roulette = document.getElementById("roulette");
-      const log = document.getElementById("drawLog");
-      const replayBtn = document.getElementById("replayBtn");
-      const section = document.getElementById("poulesSection");
+    let latestData = null;
+    let lastShownIndex = -2;
+    let replayRunning = false;
 
-      log.innerHTML = "";
-      roulette.textContent = "";
-      section.classList.add("hidden");
-      replayBtn.classList.add("hidden");
-
-      const ordre = [...tirageData.ordreTirage];
-      const restantes = [...ordre];
-
-      status.textContent = "Tirage en cours…";
-
-      for (let i = 0; i < ordre.length; i++) {
-        for (let j = 0; j < 10; j++) {
-          const randomTeam = restantes[Math.floor(Math.random() * restantes.length)];
-          roulette.textContent = randomTeam;
-          await sleep(100);
-        }
-
-        const equipe = ordre[i];
-        roulette.textContent = equipe;
-
-        const pouleIndex = (i % 3) + 1;
-        log.innerHTML += `<div>${i + 1}. <strong>${equipe}</strong> rejoint la <strong>Poule ${pouleIndex}</strong></div>`;
-
-        const idx = restantes.indexOf(equipe);
-        if (idx !== -1) restantes.splice(idx, 1);
-
-        await sleep(700);
-      }
-
-      status.textContent = "Tirage terminé";
-      afficherPoules();
-      section.classList.remove("hidden");
-      replayBtn.classList.remove("hidden");
-    }
-
-    function afficherPoules() {
+    function afficherPoules(data) {
       const p1 = document.getElementById("p1");
       const p2 = document.getElementById("p2");
       const p3 = document.getElementById("p3");
@@ -197,24 +176,114 @@
       p2.innerHTML = "";
       p3.innerHTML = "";
 
-      tirageData.poules.poule1.forEach(team => p1.innerHTML += `<li>${team}</li>`);
-      tirageData.poules.poule2.forEach(team => p2.innerHTML += `<li>${team}</li>`);
-      tirageData.poules.poule3.forEach(team => p3.innerHTML += `<li>${team}</li>`);
+      (data.poules?.poule1 || []).forEach(team => p1.innerHTML += `<li>${team}</li>`);
+      (data.poules?.poule2 || []).forEach(team => p2.innerHTML += `<li>${team}</li>`);
+      (data.poules?.poule3 || []).forEach(team => p3.innerHTML += `<li>${team}</li>`);
     }
 
-    function init() {
-      tirageData = parseData();
+    function getPouleNumber(index) {
+      return (index % 3) + 1;
+    }
 
-      if (!tirageData) {
-        document.getElementById("status").textContent = "Aucune donnée de tirage trouvée dans le lien.";
+    function appendLogLine(index, team) {
+      drawLog.innerHTML += `<div>${index + 1}. <strong>${team}</strong> rejoint la <strong>Poule ${getPouleNumber(index)}</strong></div>`;
+    }
+
+    async function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function playReplay() {
+      if (!latestData || !latestData.ordreTirage || replayRunning) return;
+
+      replayRunning = true;
+      statusArea.textContent = "Replay du tirage";
+      liveBadge.classList.add("hidden");
+      roulette.textContent = "";
+      drawLog.innerHTML = "";
+      poulesSection.classList.add("hidden");
+
+      const restantes = [...latestData.ordreTirage];
+
+      for (let i = 0; i < latestData.ordreTirage.length; i++) {
+        for (let j = 0; j < 10; j++) {
+          const randomTeam = restantes[Math.floor(Math.random() * restantes.length)];
+          roulette.textContent = randomTeam;
+          await sleep(90);
+        }
+
+        const equipe = latestData.ordreTirage[i];
+        roulette.textContent = equipe;
+        appendLogLine(i, equipe);
+
+        const idx = restantes.indexOf(equipe);
+        if (idx !== -1) restantes.splice(idx, 1);
+
+        await sleep(700);
+      }
+
+      roulette.textContent = "";
+      afficherPoules(latestData);
+      poulesSection.classList.remove("hidden");
+      replayRunning = false;
+    }
+
+    replayBtn.addEventListener("click", playReplay);
+
+    onValue(tirageRef, async (snapshot) => {
+      const data = snapshot.val();
+      latestData = data;
+
+      if (!data || data.status === "waiting") {
+        statusArea.textContent = "Le tirage n'a pas encore commencé.";
+        liveBadge.classList.add("hidden");
+        roulette.textContent = "";
+        drawLog.innerHTML = "";
+        poulesSection.classList.add("hidden");
+        replayBtn.classList.add("hidden");
+        lastShownIndex = -2;
         return;
       }
 
-      document.getElementById("replayBtn").addEventListener("click", jouerAnimation);
-      jouerAnimation();
-    }
+      if (data.status === "ready") {
+        statusArea.textContent = "Le tirage est prêt. Début imminent…";
+        liveBadge.classList.add("hidden");
+        roulette.textContent = "";
+        drawLog.innerHTML = "";
+        poulesSection.classList.add("hidden");
+        replayBtn.classList.add("hidden");
+        lastShownIndex = -1;
+        return;
+      }
 
-    init();
+      if (data.status === "live") {
+        statusArea.textContent = "Tirage en direct";
+        liveBadge.classList.remove("hidden");
+        replayBtn.classList.add("hidden");
+
+        if (typeof data.currentIndex === "number" && data.currentIndex > lastShownIndex) {
+          roulette.textContent = data.currentTeam || "";
+          appendLogLine(data.currentIndex, data.currentTeam || "");
+          lastShownIndex = data.currentIndex;
+        }
+        return;
+      }
+
+      if (data.status === "finished") {
+        statusArea.textContent = "Tirage terminé";
+        liveBadge.classList.add("hidden");
+        roulette.textContent = "";
+        afficherPoules(data);
+        poulesSection.classList.remove("hidden");
+        replayBtn.classList.remove("hidden");
+
+        if (drawLog.innerHTML.trim() === "") {
+          for (let i = 0; i < data.ordreTirage.length; i++) {
+            appendLogLine(i, data.ordreTirage[i]);
+          }
+        }
+      }
+    });
   </script>
 </body>
 </html>
