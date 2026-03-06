@@ -5,94 +5,81 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin - Tirage des poules</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: #f3f6f9;
-      color: #1f2937;
+    body{
+      font-family:Arial,sans-serif;
+      margin:0;
+      padding:20px;
+      background:#f3f6f9;
+      color:#1f2937;
     }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
+    .container{
+      max-width:1000px;
+      margin:0 auto;
     }
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    .card{
+      background:#fff;
+      border-radius:14px;
+      padding:20px;
+      margin-bottom:20px;
+      box-shadow:0 6px 18px rgba(0,0,0,.08);
     }
-    h1, h2 {
-      margin-top: 0;
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:12px;
     }
-    .subtitle {
-      color: #6b7280;
-      margin-bottom: 20px;
+    input{
+      width:100%;
+      padding:12px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      box-sizing:border-box;
+      font-size:15px;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
+    button{
+      background:#0f766e;
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      padding:14px 18px;
+      font-size:16px;
+      cursor:pointer;
+      margin-top:12px;
+      margin-right:8px;
     }
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      box-sizing: border-box;
-      font-size: 15px;
+    button.secondary{
+      background:#1d4ed8;
     }
-    button, .link-btn {
-      background: #0f766e;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 14px 18px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 12px;
-      text-decoration: none;
-      display: inline-block;
+    .result{
+      margin-top:20px;
+      padding:16px;
+      border-radius:12px;
+      background:#ecfeff;
+      border:1px solid #a5f3fc;
     }
-    button:hover, .link-btn:hover {
-      opacity: 0.95;
+    .link-box{
+      word-break:break-all;
+      background:#f8fafc;
+      border:1px solid #cbd5e1;
+      border-radius:10px;
+      padding:12px;
+      margin-top:12px;
     }
-    .secondary {
-      background: #1d4ed8;
-    }
-    .result {
-      margin-top: 20px;
-      padding: 16px;
-      border-radius: 12px;
-      background: #ecfeff;
-      border: 1px solid #a5f3fc;
-    }
-    ul {
-      margin: 8px 0 0;
-    }
-    li {
-      margin-bottom: 6px;
-    }
-    .hidden {
-      display: none;
-    }
-    .link-box {
-      word-break: break-all;
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 12px;
-      margin-top: 12px;
-    }
+    .hidden{display:none;}
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card">
       <h1>Admin — Tirage des poules</h1>
-      <div class="subtitle">Saisie des équipes, tirage, puis génération du lien public de replay.</div>
+      <p>Cette page pilote le tirage en direct.</p>
+      <div class="link-box">
+        Lien public à partager :<br>
+        <strong id="publicLink"></strong>
+      </div>
+    </div>
 
+    <div class="card">
       <h2>Têtes de série</h2>
       <div class="grid">
         <input id="ts1" placeholder="Tête de série 1 → Poule 1">
@@ -112,19 +99,41 @@
         <input class="team" placeholder="Équipe 6">
       </div>
 
-      <button onclick="lancerTirage()">Lancer le tirage</button>
+      <button id="prepareBtn">Préparer le tirage</button>
+      <button id="startBtn" class="secondary">Lancer le tirage en direct</button>
+      <button id="resetBtn">Réinitialiser</button>
 
-      <div id="resultBox" class="result hidden">
-        <h2>Résultat admin</h2>
-        <div id="resultText"></div>
-        <button class="secondary" onclick="genererLienPublic()">Générer le lien public</button>
-        <div id="publicLinkBox" class="link-box hidden"></div>
-        <a id="openPublicLink" class="link-btn hidden" target="_blank">Ouvrir la page publique</a>
-      </div>
+      <div id="resultBox" class="result hidden"></div>
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      update,
+      get
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeLh-JXNithWyTut5dWMCYLn_tO_FsgjQ",
+      authDomain: "tirage-ligue-equipes.firebaseapp.com",
+      databaseURL: "https://tirage-ligue-equipes-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "tirage-ligue-equipes",
+      storageBucket: "tirage-ligue-equipes.firebasestorage.app",
+      messagingSenderId: "801813158938",
+      appId: "1:801813158938:web:de76fb9b7758249c5a85a3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const tirageRef = ref(db, "tirage");
+
+    const publicUrl = `${window.location.origin}${window.location.pathname.replace("index.html", "")}public.html`;
+    document.getElementById("publicLink").textContent = publicUrl;
+
     let tirageData = null;
 
     function shuffle(array) {
@@ -136,7 +145,11 @@
       return arr;
     }
 
-    function lancerTirage() {
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function buildTirage() {
       const ts1 = document.getElementById("ts1").value.trim();
       const ts2 = document.getElementById("ts2").value.trim();
       const ts3 = document.getElementById("ts3").value.trim();
@@ -147,16 +160,15 @@
 
       if (!ts1 || !ts2 || !ts3) {
         alert("Merci de renseigner les 3 têtes de série.");
-        return;
+        return null;
       }
 
       if (teams.length !== 6) {
-        alert("Merci de renseigner exactement 6 équipes à tirer.");
-        return;
+        alert("Merci de renseigner exactement 6 équipes.");
+        return null;
       }
 
       const ordreTirage = shuffle(teams);
-
       const poule1 = [ts1];
       const poule2 = [ts2];
       const poule3 = [ts3];
@@ -167,47 +179,97 @@
         else poule3.push(team);
       });
 
-      tirageData = {
-        tournoi: "Tirage officiel",
+      return {
+        status: "ready",
+        currentIndex: -1,
+        currentTeam: "",
+        startedAt: Date.now(),
         ts: [ts1, ts2, ts3],
         ordreTirage,
-        poules: {
-          poule1,
-          poule2,
-          poule3
-        }
+        poules: { poule1, poule2, poule3 }
       };
-
-      document.getElementById("resultText").innerHTML = `
-        <p><strong>Ordre du tirage :</strong> ${ordreTirage.join(" → ")}</p>
-        <p><strong>Poule 1 :</strong> ${poule1.join(" / ")}</p>
-        <p><strong>Poule 2 :</strong> ${poule2.join(" / ")}</p>
-        <p><strong>Poule 3 :</strong> ${poule3.join(" / ")}</p>
-      `;
-
-      document.getElementById("resultBox").classList.remove("hidden");
-      document.getElementById("publicLinkBox").classList.add("hidden");
-      document.getElementById("openPublicLink").classList.add("hidden");
     }
 
-    function genererLienPublic() {
+    function showResult(data) {
+      const box = document.getElementById("resultBox");
+      box.innerHTML = `
+        <p><strong>Ordre du tirage :</strong> ${data.ordreTirage.join(" → ")}</p>
+        <p><strong>Poule 1 :</strong> ${data.poules.poule1.join(" / ")}</p>
+        <p><strong>Poule 2 :</strong> ${data.poules.poule2.join(" / ")}</p>
+        <p><strong>Poule 3 :</strong> ${data.poules.poule3.join(" / ")}</p>
+      `;
+      box.classList.remove("hidden");
+    }
+
+    document.getElementById("prepareBtn").addEventListener("click", async () => {
+      const data = buildTirage();
+      if (!data) return;
+
+      tirageData = data;
+      await set(tirageRef, data);
+      showResult(data);
+      alert("Tirage préparé. Le public verra que le tirage est prêt, mais pas encore lancé.");
+    });
+
+    document.getElementById("startBtn").addEventListener("click", async () => {
       if (!tirageData) {
-        alert("Lance d'abord le tirage.");
+        const snap = await get(tirageRef);
+        if (snap.exists()) tirageData = snap.val();
+      }
+
+      if (!tirageData || !tirageData.ordreTirage) {
+        alert("Prépare d'abord le tirage.");
         return;
       }
 
-      const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(tirageData)))));
-      const publicUrl = `${window.location.origin}${window.location.pathname.replace('index.html', '')}public.html?data=${encoded}`;
+      await update(tirageRef, {
+        status: "live",
+        currentIndex: -1,
+        currentTeam: ""
+      });
 
-      const box = document.getElementById("publicLinkBox");
-      const btn = document.getElementById("openPublicLink");
+      for (let i = 0; i < tirageData.ordreTirage.length; i++) {
+        const team = tirageData.ordreTirage[i];
 
-      box.textContent = publicUrl;
-      box.classList.remove("hidden");
+        await update(tirageRef, {
+          status: "live",
+          currentIndex: i,
+          currentTeam: team
+        });
 
-      btn.href = publicUrl;
-      btn.classList.remove("hidden");
+        await sleep(2200);
+      }
+
+      await update(tirageRef, {
+        status: "finished",
+        currentTeam: "",
+        currentIndex: tirageData.ordreTirage.length - 1
+      });
+
+      alert("Tirage terminé.");
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", async () => {
+      await set(tirageRef, {
+        status: "waiting",
+        message: "Le tirage n'a pas encore commencé."
+      });
+      tirageData = null;
+      document.getElementById("resultBox").classList.add("hidden");
+      alert("Tirage réinitialisé.");
+    });
+
+    async function init() {
+      const snap = await get(tirageRef);
+      if (!snap.exists()) {
+        await set(tirageRef, {
+          status: "waiting",
+          message: "Le tirage n'a pas encore commencé."
+        });
+      }
     }
+
+    init();
   </script>
 </body>
 </html>
