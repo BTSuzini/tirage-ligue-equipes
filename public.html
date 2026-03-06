@@ -7,190 +7,320 @@
   <style>
     :root{
       --gold:#facc15;
+      --gold-soft:#fde68a;
       --sea:#14b8a6;
+      --sea-soft:#5eead4;
       --border:rgba(255,255,255,.14);
       --glass:rgba(255,255,255,.08);
-      --shadow:0 12px 30px rgba(0,0,0,.30);
+      --glass-2:rgba(255,255,255,.12);
+      --shadow:0 14px 34px rgba(0,0,0,.32);
+      --bg1:#132238;
+      --bg2:#0f172a;
+      --bg3:#0b1120;
     }
+
     *{box-sizing:border-box}
+
     body{
       font-family:Arial,sans-serif;
       margin:0;
       padding:20px;
       color:white;
       background:
-        radial-gradient(circle at top, rgba(20,184,166,.18), transparent 25%),
-        radial-gradient(circle at bottom, rgba(250,204,21,.10), transparent 25%),
-        linear-gradient(180deg,#132238 0%,#0f172a 45%,#0b1120 100%);
+        radial-gradient(circle at top, rgba(20,184,166,.18), transparent 24%),
+        radial-gradient(circle at bottom, rgba(250,204,21,.08), transparent 24%),
+        linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%);
       min-height:100vh;
     }
+
     .container{
-      max-width:1200px;
+      max-width:1280px;
       margin:0 auto;
     }
+
     .hero,.card,.poule{
       background:var(--glass);
       border:1px solid var(--border);
-      border-radius:24px;
+      border-radius:28px;
       box-shadow:var(--shadow);
       backdrop-filter:blur(10px);
       -webkit-backdrop-filter:blur(10px);
     }
+
     .hero{
       position:relative;
       overflow:hidden;
-      padding:28px 24px 26px;
+      padding:28px 34px 34px;
       margin-bottom:20px;
+      min-height:260px;
     }
-    .hero-top{
+
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at center, rgba(20,184,166,.12), transparent 35%),
+        linear-gradient(135deg, rgba(250,204,21,.06), transparent 25%),
+        linear-gradient(225deg, rgba(20,184,166,.10), transparent 28%);
+      pointer-events:none;
+    }
+
+    .hero-grid{
+      position:relative;
+      z-index:2;
+      display:grid;
+      grid-template-columns:160px 1fr 160px;
+      align-items:center;
+      gap:20px;
+      min-height:190px;
+    }
+
+    .hero-logo{
       display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      margin-bottom:10px;
+      align-items:center;
+      justify-content:center;
+      height:160px;
     }
-    .logo-side img{
-      width:84px;
-      height:84px;
+
+    .hero-logo img{
+      max-width:150px;
+      max-height:150px;
+      width:auto;
+      height:auto;
       object-fit:contain;
       display:block;
+      filter:drop-shadow(0 8px 18px rgba(0,0,0,.22));
     }
+
     .hero-center{
       text-align:center;
-      padding:4px 0 2px;
     }
+
     .hero h1{
-      margin:0 0 8px;
-      font-size:clamp(30px, 5vw, 48px);
+      margin:0 0 10px;
+      font-size:clamp(34px, 5vw, 60px);
+      line-height:1.05;
+      letter-spacing:.3px;
     }
+
     .subtitle{
-      font-size:clamp(18px, 3vw, 24px);
+      font-size:clamp(20px, 2.8vw, 30px);
       color:#e2e8f0;
-      margin-bottom:12px;
+      margin-bottom:14px;
     }
+
     .category{
       display:inline-block;
-      background:linear-gradient(135deg,#facc15,#fde68a);
+      background:linear-gradient(135deg,var(--gold),var(--gold-soft));
       color:#111827;
-      padding:9px 18px;
+      padding:11px 22px;
       border-radius:999px;
       font-weight:bold;
-      margin:6px 0 10px;
+      font-size:20px;
+      margin:4px 0 12px;
+      box-shadow:0 8px 22px rgba(250,204,21,.18);
     }
+
     .date{
       color:#cbd5e1;
-      font-size:16px;
+      font-size:18px;
     }
+
     .card{
-      padding:28px;
+      padding:30px 28px;
       margin-bottom:20px;
       text-align:center;
     }
+
     .waiting{
-      font-size:26px;
+      font-size:28px;
       color:#e2e8f0;
       line-height:1.5;
     }
+
     .live-badge{
       display:inline-block;
       background:linear-gradient(135deg,#dc2626,#ef4444);
       color:white;
-      padding:8px 14px;
+      padding:9px 16px;
       border-radius:999px;
       font-weight:bold;
-      margin-bottom:14px;
+      margin:12px 0 16px;
       box-shadow:0 0 18px rgba(220,38,38,.45);
+      font-size:20px;
     }
+
     .countdown{
-      font-size:76px;
+      font-size:88px;
       font-weight:800;
       color:var(--gold);
-      margin:18px 0;
-      text-shadow:0 0 18px rgba(250,204,21,.35);
+      margin:14px 0;
+      text-shadow:0 0 22px rgba(250,204,21,.35);
+      line-height:1;
     }
-    .roulette-wrap{
-      max-width:760px;
-      margin:18px auto;
-      padding:20px;
-      border-radius:20px;
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+
+    .roulette-stage{
+      margin:18px auto 12px;
+      max-width:920px;
+      padding:18px;
+      border-radius:26px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       border:1px solid rgba(255,255,255,.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 10px 30px rgba(0,0,0,.18);
     }
+
     .roulette-title{
       color:#cbd5e1;
-      margin-bottom:10px;
-      font-size:13px;
+      margin-bottom:12px;
+      font-size:15px;
       text-transform:uppercase;
-      letter-spacing:2px;
+      letter-spacing:3px;
     }
+
+    .roulette-window{
+      position:relative;
+      min-height:150px;
+      border-radius:22px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background:
+        radial-gradient(circle at center, rgba(20,184,166,.14), transparent 36%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.12);
+      overflow:hidden;
+    }
+
+    .roulette-window::before,
+    .roulette-window::after{
+      content:"";
+      position:absolute;
+      top:18px;
+      bottom:18px;
+      width:6px;
+      border-radius:999px;
+      background:linear-gradient(180deg,var(--gold),var(--sea-soft));
+      opacity:.9;
+    }
+
+    .roulette-window::before{ left:18px; }
+    .roulette-window::after{ right:18px; }
+
     .roulette{
-      font-size:42px;
+      font-size:clamp(34px, 5vw, 64px);
       font-weight:800;
-      min-height:54px;
       color:var(--gold);
+      text-shadow:0 0 22px rgba(250,204,21,.25);
+      line-height:1.1;
+      word-break:break-word;
+      max-width:90%;
     }
+
+    .roulette-placeholder{
+      color:#94a3b8;
+      font-size:24px;
+      font-weight:bold;
+    }
+
     .draw-log{
       text-align:left;
-      max-width:760px;
+      max-width:820px;
       margin:22px auto 0;
       color:#e5e7eb;
       line-height:1.9;
-      font-size:18px;
+      font-size:20px;
     }
+
+    .draw-log strong{
+      color:#fff;
+    }
+
     .poules{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      grid-template-columns:repeat(3, minmax(0,1fr));
       gap:18px;
       margin-top:10px;
     }
+
     .poule{
       position:relative;
       overflow:hidden;
       padding:22px 20px;
       background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.06));
+      transition:transform .25s ease, box-shadow .25s ease;
     }
+
+    .poule.active{
+      transform:translateY(-4px);
+      box-shadow:0 0 0 1px rgba(250,204,21,.30), 0 16px 34px rgba(0,0,0,.28);
+    }
+
     .poule::before{
       content:"";
       position:absolute;
       top:0;
       left:0;
       right:0;
-      height:5px;
-      background:linear-gradient(90deg, var(--gold), var(--sea));
+      height:6px;
+      background:linear-gradient(90deg,var(--gold),var(--sea));
     }
+
     .poule h2{
       text-align:center;
       margin:2px 0 10px;
-      font-size:30px;
+      font-size:34px;
       color:#f8fafc;
     }
+
     .poule-sub{
       text-align:center;
       color:#cbd5e1;
-      font-size:13px;
+      font-size:14px;
       text-transform:uppercase;
       letter-spacing:2px;
       margin-bottom:10px;
     }
+
     ul{
-      padding-left:22px;
+      padding-left:24px;
       margin-bottom:0;
-      font-size:18px;
-      line-height:1.8;
-      min-height:130px;
+      font-size:22px;
+      line-height:1.9;
+      min-height:180px;
     }
+
     li{
-      margin-bottom:6px;
+      margin-bottom:4px;
     }
+
     li:first-child{
       color:#fde68a;
       font-weight:bold;
     }
-    .hidden{display:none}
+
+    li.new-entry{
+      animation:popIn .55s ease;
+      color:#ffffff;
+      font-weight:bold;
+    }
+
+    @keyframes popIn{
+      0%{ transform:scale(.92); opacity:.2; }
+      60%{ transform:scale(1.04); opacity:1; }
+      100%{ transform:scale(1); }
+    }
+
     .actions{
       margin-top:18px;
     }
+
     .replay-btn,.img-btn{
-      background:linear-gradient(135deg,#facc15,#fde68a);
+      background:linear-gradient(135deg,var(--gold),var(--gold-soft));
       color:#111827;
       border:none;
       border-radius:12px;
@@ -200,6 +330,9 @@
       font-weight:bold;
       margin:6px;
     }
+
+    .hidden{display:none}
+
     .footer{
       margin-top:20px;
       text-align:center;
@@ -207,6 +340,7 @@
       font-size:14px;
     }
 
+    /* Capture */
     .capture-board{
       width:1080px;
       height:1350px;
@@ -220,54 +354,66 @@
       background:
         radial-gradient(circle at top, rgba(20,184,166,.18), transparent 24%),
         radial-gradient(circle at bottom, rgba(250,204,21,.10), transparent 24%),
-        linear-gradient(180deg,#132238 0%,#0f172a 45%,#0b1120 100%);
+        linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%);
       box-sizing:border-box;
     }
+
     .cap-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      margin-bottom:10px;
+      display:grid;
+      grid-template-columns:160px 1fr 160px;
+      align-items:center;
+      margin-bottom:12px;
     }
+
     .cap-head img{
-      width:90px;
-      height:90px;
+      max-width:140px;
+      max-height:140px;
+      width:auto;
+      height:auto;
       object-fit:contain;
+      display:block;
+      margin:auto;
     }
+
     .capture-board h1{
       text-align:center;
       font-size:54px;
       margin:0 0 10px;
     }
+
     .capture-board .sub{
       text-align:center;
       font-size:28px;
       color:#e2e8f0;
       margin-bottom:12px;
     }
+
     .capture-board .cat{
       text-align:center;
       font-size:26px;
       font-weight:bold;
       color:#111827;
-      background:linear-gradient(135deg,#facc15,#fde68a);
+      background:linear-gradient(135deg,var(--gold),var(--gold-soft));
       border-radius:999px;
       padding:10px 18px;
       width:max-content;
       margin:0 auto 12px;
     }
+
     .capture-board .date{
       text-align:center;
       color:#cbd5e1;
       font-size:24px;
       margin-bottom:34px;
     }
+
     .capture-grid{
       display:grid;
       grid-template-columns:repeat(3,1fr);
       gap:22px;
       margin-top:20px;
     }
+
     .capture-poule{
       background:rgba(255,255,255,.08);
       border:1px solid rgba(255,255,255,.14);
@@ -277,6 +423,7 @@
       position:relative;
       overflow:hidden;
     }
+
     .capture-poule::before{
       content:"";
       position:absolute;
@@ -284,8 +431,9 @@
       left:0;
       right:0;
       height:6px;
-      background:linear-gradient(90deg, var(--gold), var(--sea));
+      background:linear-gradient(90deg,var(--gold),var(--sea));
     }
+
     .capture-poule h3{
       text-align:center;
       font-size:34px;
@@ -293,51 +441,81 @@
       margin-bottom:12px;
       color:#facc15;
     }
+
     .capture-poule ul{
       font-size:26px;
       line-height:1.9;
       padding-left:28px;
       min-height:auto;
     }
+
     .capture-poule li:first-child{
       color:#fde68a;
       font-weight:bold;
     }
 
-    @media (max-width:700px){
+    @media (max-width: 980px){
+      .poules{
+        grid-template-columns:1fr;
+      }
+      .hero-grid{
+        grid-template-columns:100px 1fr 100px;
+        gap:10px;
+        min-height:unset;
+      }
+      .hero-logo{
+        height:100px;
+      }
+      .hero-logo img{
+        max-width:92px;
+        max-height:92px;
+      }
+      ul{
+        min-height:unset;
+      }
+    }
+
+    @media (max-width: 700px){
       body{padding:14px}
-      .hero{padding:22px 18px 24px}
+      .hero{padding:20px 16px 24px}
       .card{padding:20px}
+      .hero-grid{
+        grid-template-columns:70px 1fr 70px;
+      }
+      .hero-logo{
+        height:70px;
+      }
+      .hero-logo img{
+        max-width:64px;
+        max-height:64px;
+      }
       .waiting{font-size:22px}
       .countdown{font-size:58px}
-      .roulette{font-size:32px}
+      .roulette-window{min-height:120px}
       .draw-log{font-size:16px}
-      .poule h2{font-size:26px}
-      ul{font-size:17px}
-      .logo-side img{
-        width:58px;
-        height:58px;
-      }
+      .poule h2{font-size:28px}
+      ul{font-size:18px}
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="hero">
-      <div class="hero-top">
-        <div class="logo-side">
+      <div class="hero-grid">
+        <div class="hero-logo">
           <img src="assets/ligue.png" alt="Logo Ligue">
         </div>
-        <div class="logo-side">
+
+        <div class="hero-center">
+          <h1 id="heroTitle">Championnat de Guyane</h1>
+          <div id="heroSubtitle" class="subtitle">Tirage officiel des poules</div>
+          <div id="heroCategory" class="category">Beach Tennis</div>
+          <div id="heroDate" class="date">Mars 2026</div>
+        </div>
+
+        <div class="hero-logo">
           <img src="assets/beach.png" alt="Logo Beach">
         </div>
-      </div>
-
-      <div class="hero-center">
-        <h1 id="heroTitle">Championnat de Guyane</h1>
-        <div id="heroSubtitle" class="subtitle">Tirage officiel des poules</div>
-        <div id="heroCategory" class="category">Beach Tennis</div>
-        <div id="heroDate" class="date">Mars 2026</div>
       </div>
     </div>
 
@@ -350,9 +528,11 @@
         <div id="countdownValue" class="countdown">10</div>
       </div>
 
-      <div id="rouletteWrap" class="roulette-wrap hidden">
+      <div id="rouletteStage" class="roulette-stage">
         <div class="roulette-title">Roulette du tirage</div>
-        <div id="roulette" class="roulette"></div>
+        <div class="roulette-window">
+          <div id="roulette" class="roulette roulette-placeholder">En attente du tirage</div>
+        </div>
       </div>
 
       <div id="drawLog" class="draw-log"></div>
@@ -364,17 +544,17 @@
     </div>
 
     <div id="poulesSection" class="poules">
-      <div class="poule">
+      <div class="poule" id="boxA">
         <div class="poule-sub">Beach Tennis</div>
         <h2>Poule A</h2>
         <ul id="p1"></ul>
       </div>
-      <div class="poule">
+      <div class="poule" id="boxB">
         <div class="poule-sub">Beach Tennis</div>
         <h2>Poule B</h2>
         <ul id="p2"></ul>
       </div>
-      <div class="poule">
+      <div class="poule" id="boxC">
         <div class="poule-sub">Beach Tennis</div>
         <h2>Poule C</h2>
         <ul id="p3"></ul>
@@ -387,6 +567,7 @@
   <div id="captureBoard" class="capture-board">
     <div class="cap-head">
       <img src="assets/ligue.png" alt="Logo Ligue">
+      <div></div>
       <img src="assets/beach.png" alt="Logo Beach">
     </div>
 
@@ -435,7 +616,6 @@
     const liveBadge = document.getElementById("liveBadge");
     const countdownBox = document.getElementById("countdownBox");
     const countdownValue = document.getElementById("countdownValue");
-    const rouletteWrap = document.getElementById("rouletteWrap");
     const roulette = document.getElementById("roulette");
     const drawLog = document.getElementById("drawLog");
     const replayBtn = document.getElementById("replayBtn");
@@ -445,7 +625,8 @@
     let countdownInterval = null;
     let rouletteInterval = null;
     let replayRunning = false;
-    let lastLogSignature = "";
+    let logSet = new Set();
+    let lastRenderedDisplayed = "";
 
     function updateHeader(data) {
       document.getElementById("heroTitle").textContent = data?.title || "Championnat de Guyane";
@@ -459,8 +640,26 @@
       document.getElementById("capDate").textContent = data?.dateLabel || "";
     }
 
-    function renderPoules(data) {
+    function getPouleLetter(index) {
+      return ["A", "B", "C"][index % 3];
+    }
+
+    function highlightPoule(letter) {
+      ["A","B","C"].forEach(l => {
+        document.getElementById("box" + l).classList.toggle("active", l === letter);
+      });
+    }
+
+    function clearPouleHighlights() {
+      ["A","B","C"].forEach(l => document.getElementById("box" + l).classList.remove("active"));
+    }
+
+    function renderPoules(data, animateNew = false) {
       const displayed = data?.displayedPoules || data?.poules || {};
+      const sig = JSON.stringify(displayed);
+      const changed = sig !== lastRenderedDisplayed;
+      lastRenderedDisplayed = sig;
+
       const map = [
         ["p1", "capP1", displayed.pouleA || []],
         ["p2", "capP2", displayed.pouleB || []],
@@ -472,23 +671,22 @@
         const el2 = document.getElementById(id2);
         el1.innerHTML = "";
         el2.innerHTML = "";
-        arr.forEach(team => {
-          el1.innerHTML += `<li>${team}</li>`;
+
+        arr.forEach((team, idx) => {
+          const isLast = idx === arr.length - 1;
+          const liClass = animateNew && changed && isLast && idx > 0 ? ' class="new-entry"' : "";
+          el1.innerHTML += `<li${liClass}>${team}</li>`;
           el2.innerHTML += `<li>${team}</li>`;
         });
       });
     }
 
-    function getPouleLetter(index) {
-      return ["A", "B", "C"][index % 3];
-    }
-
     function appendLogLine(index, team) {
-      if (!team) return;
+      if (!team && team !== "") return;
       const sig = `${index}-${team}`;
-      if (sig === lastLogSignature) return;
+      if (logSet.has(sig)) return;
       drawLog.innerHTML += `<div>${index + 1}. <strong>${team}</strong> rejoint la <strong>Poule ${getPouleLetter(index)}</strong></div>`;
-      lastLogSignature = sig;
+      logSet.add(sig);
     }
 
     function clearTimers() {
@@ -498,14 +696,18 @@
       rouletteInterval = null;
     }
 
+    function setRouletteText(text, placeholder = false) {
+      roulette.textContent = text;
+      roulette.classList.toggle("roulette-placeholder", placeholder);
+    }
+
     function startCountdown(data) {
       clearTimers();
       countdownBox.classList.remove("hidden");
-      rouletteWrap.classList.add("hidden");
       replayBtn.classList.add("hidden");
       imgBtn.classList.add("hidden");
       liveBadge.classList.add("hidden");
-      roulette.textContent = "";
+      setRouletteText("Le tirage commence bientôt", true);
 
       const total = data.countdownSeconds || 10;
       const startAt = data.countdownStartAt || Date.now();
@@ -523,8 +725,8 @@
     function startRouletteLoop(data) {
       clearTimers();
       countdownBox.classList.add("hidden");
-      rouletteWrap.classList.remove("hidden");
       const baseList = data?.ordreTirage?.length ? data.ordreTirage : ["Équipe 1", "Équipe 2", "Équipe 3"];
+      roulette.classList.remove("roulette-placeholder");
       let idx = 0;
       rouletteInterval = setInterval(() => {
         roulette.textContent = baseList[idx % baseList.length];
@@ -535,7 +737,7 @@
     function stopRouletteOn(team) {
       if (rouletteInterval) clearInterval(rouletteInterval);
       rouletteInterval = null;
-      roulette.textContent = team || "";
+      setRouletteText(team || "—", false);
     }
 
     async function sleep(ms) {
@@ -550,35 +752,39 @@
       statusArea.textContent = "Replay du tirage";
       liveBadge.classList.add("hidden");
       countdownBox.classList.add("hidden");
-      rouletteWrap.classList.remove("hidden");
       drawLog.innerHTML = "";
-      lastLogSignature = "";
+      logSet = new Set();
       replayBtn.classList.add("hidden");
       imgBtn.classList.add("hidden");
+      clearPouleHighlights();
 
       const displayed = {
         pouleA: [latestData.ts?.[0]].filter(Boolean),
         pouleB: [latestData.ts?.[1]].filter(Boolean),
         pouleC: [latestData.ts?.[2]].filter(Boolean)
       };
-      renderPoules({ displayedPoules: displayed });
+      lastRenderedDisplayed = "";
+      renderPoules({ displayedPoules: displayed }, false);
 
       const restantes = [...latestData.ordreTirage];
 
       for (let i = 0; i < latestData.ordreTirage.length; i++) {
-        for (let j = 0; j < 14; j++) {
+        const letter = getPouleLetter(i);
+        highlightPoule(letter);
+
+        for (let j = 0; j < 16; j++) {
           const randomTeam = restantes[Math.floor(Math.random() * restantes.length)];
-          roulette.textContent = randomTeam;
+          setRouletteText(randomTeam, false);
           await sleep(85);
         }
 
         const equipe = latestData.ordreTirage[i];
-        roulette.textContent = equipe;
+        stopRouletteOn(equipe);
         appendLogLine(i, equipe);
 
-        const key = `poule${getPouleLetter(i)}`;
+        const key = `poule${letter}`;
         displayed[key].push(equipe);
-        renderPoules({ displayedPoules: displayed });
+        renderPoules({ displayedPoules: displayed }, true);
 
         const idx = restantes.indexOf(equipe);
         if (idx !== -1) restantes.splice(idx, 1);
@@ -586,7 +792,8 @@
         await sleep(900);
       }
 
-      roulette.textContent = "";
+      clearPouleHighlights();
+      setRouletteText("Tirage terminé", true);
       replayBtn.classList.remove("hidden");
       imgBtn.classList.remove("hidden");
       replayRunning = false;
@@ -608,40 +815,44 @@
       const data = snapshot.val();
       latestData = data;
       updateHeader(data);
-      renderPoules(data);
 
       if (!data || data.status === "waiting") {
         clearTimers();
         statusArea.textContent = "Le tirage n'a pas encore commencé.";
         liveBadge.classList.add("hidden");
         countdownBox.classList.add("hidden");
-        rouletteWrap.classList.add("hidden");
-        roulette.textContent = "";
+        setRouletteText("En attente du tirage", true);
         drawLog.innerHTML = "";
-        lastLogSignature = "";
+        logSet = new Set();
+        lastRenderedDisplayed = "";
         replayBtn.classList.add("hidden");
         imgBtn.classList.add("hidden");
+        clearPouleHighlights();
+        renderPoules(data, false);
         return;
       }
+
+      renderPoules(data, data.phase === "added");
 
       if (data.status === "ready") {
         clearTimers();
         statusArea.textContent = "Le tirage est prêt. Début imminent…";
         liveBadge.classList.add("hidden");
         countdownBox.classList.add("hidden");
-        rouletteWrap.classList.add("hidden");
-        roulette.textContent = "";
+        setRouletteText("Tirage prêt", true);
         drawLog.innerHTML = "";
-        lastLogSignature = "";
+        logSet = new Set();
         replayBtn.classList.add("hidden");
         imgBtn.classList.add("hidden");
+        clearPouleHighlights();
         return;
       }
 
       if (data.status === "countdown") {
         statusArea.textContent = "Le tirage va commencer";
         drawLog.innerHTML = "";
-        lastLogSignature = "";
+        logSet = new Set();
+        clearPouleHighlights();
         startCountdown(data);
         return;
       }
@@ -652,28 +863,34 @@
         replayBtn.classList.add("hidden");
         imgBtn.classList.add("hidden");
 
+        const letter = typeof data.currentIndex === "number" ? getPouleLetter(data.currentIndex) : null;
+
         if (data.phase === "ready_for_spin") {
           clearTimers();
           countdownBox.classList.add("hidden");
-          rouletteWrap.classList.remove("hidden");
-          roulette.textContent = "";
+          clearPouleHighlights();
+          if (letter) highlightPoule(letter);
+          setRouletteText("Prêt pour la roulette", true);
           return;
         }
 
         if (data.phase === "spinning") {
+          if (letter) highlightPoule(letter);
           startRouletteLoop(data);
           return;
         }
 
         if (data.phase === "stopped") {
+          if (letter) highlightPoule(letter);
           stopRouletteOn(data.currentTeam || "");
           appendLogLine(data.currentIndex, data.currentTeam || "");
           return;
         }
 
         if (data.phase === "added") {
+          if (letter) highlightPoule(letter);
           stopRouletteOn(data.currentTeam || "");
-          renderPoules(data);
+          renderPoules(data, true);
           return;
         }
       }
@@ -683,9 +900,9 @@
         statusArea.textContent = "Tirage terminé";
         liveBadge.classList.add("hidden");
         countdownBox.classList.add("hidden");
-        rouletteWrap.classList.add("hidden");
-        roulette.textContent = "";
-        renderPoules(data);
+        clearPouleHighlights();
+        setRouletteText("Tirage terminé", true);
+        renderPoules(data, false);
         replayBtn.classList.remove("hidden");
         imgBtn.classList.remove("hidden");
 
