@@ -3,32 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tirage des poules</title>
+  <title>Admin - Tirage des poules</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f3f6f9;
       margin: 0;
       padding: 20px;
+      background: #f3f6f9;
       color: #1f2937;
     }
-
     .container {
       max-width: 1000px;
       margin: 0 auto;
     }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .subtitle {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #6b7280;
-    }
-
     .card {
       background: white;
       border-radius: 14px;
@@ -36,17 +23,18 @@
       margin-bottom: 20px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     }
-
-    h2 {
+    h1, h2 {
       margin-top: 0;
     }
-
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
     }
-
     input {
       width: 100%;
       padding: 12px;
@@ -55,8 +43,7 @@
       box-sizing: border-box;
       font-size: 15px;
     }
-
-    button {
+    button, .link-btn {
       background: #0f766e;
       color: white;
       border: none;
@@ -64,55 +51,48 @@
       padding: 14px 18px;
       font-size: 16px;
       cursor: pointer;
-      width: 100%;
-      margin-top: 10px;
+      margin-top: 12px;
+      text-decoration: none;
+      display: inline-block;
     }
-
-    button:hover {
+    button:hover, .link-btn:hover {
       opacity: 0.95;
     }
-
-    .poules {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
+    .secondary {
+      background: #1d4ed8;
+    }
+    .result {
       margin-top: 20px;
-    }
-
-    .poule {
-      background: white;
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    }
-
-    .poule h3 {
-      margin-top: 0;
-      text-align: center;
-    }
-
-    ul {
-      padding-left: 20px;
-      margin-bottom: 0;
-    }
-
-    li {
-      margin-bottom: 8px;
-    }
-
-    .official {
-      margin-top: 25px;
+      padding: 16px;
+      border-radius: 12px;
       background: #ecfeff;
       border: 1px solid #a5f3fc;
+    }
+    ul {
+      margin: 8px 0 0;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .hidden {
+      display: none;
+    }
+    .link-box {
+      word-break: break-all;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 12px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Tirage au sort des poules</h1>
-    <div class="subtitle">3 têtes de série + 6 équipes tirées au sort</div>
-
     <div class="card">
+      <h1>Admin — Tirage des poules</h1>
+      <div class="subtitle">Saisie des équipes, tirage, puis génération du lien public de replay.</div>
+
       <h2>Têtes de série</h2>
       <div class="grid">
         <input id="ts1" placeholder="Tête de série 1 → Poule 1">
@@ -131,56 +111,38 @@
         <input class="team" placeholder="Équipe 5">
         <input class="team" placeholder="Équipe 6">
       </div>
-      <button onclick="tirage()">Lancer le tirage</button>
-    </div>
 
-    <div class="poules">
-      <div class="poule">
-        <h3>Poule 1</h3>
-        <ul id="p1"></ul>
-      </div>
-      <div class="poule">
-        <h3>Poule 2</h3>
-        <ul id="p2"></ul>
-      </div>
-      <div class="poule">
-        <h3>Poule 3</h3>
-        <ul id="p3"></ul>
-      </div>
-    </div>
+      <button onclick="lancerTirage()">Lancer le tirage</button>
 
-    <div class="card official" id="officialBox" style="display:none;">
-      <h2>Version officielle</h2>
-      <div id="officialText"></div>
+      <div id="resultBox" class="result hidden">
+        <h2>Résultat admin</h2>
+        <div id="resultText"></div>
+        <button class="secondary" onclick="genererLienPublic()">Générer le lien public</button>
+        <div id="publicLinkBox" class="link-box hidden"></div>
+        <a id="openPublicLink" class="link-btn hidden" target="_blank">Ouvrir la page publique</a>
+      </div>
     </div>
   </div>
 
   <script>
+    let tirageData = null;
+
     function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
-      return array;
+      return arr;
     }
 
-    function tirage() {
-      const p1 = document.getElementById("p1");
-      const p2 = document.getElementById("p2");
-      const p3 = document.getElementById("p3");
-      const officialBox = document.getElementById("officialBox");
-      const officialText = document.getElementById("officialText");
-
-      p1.innerHTML = "";
-      p2.innerHTML = "";
-      p3.innerHTML = "";
-
+    function lancerTirage() {
       const ts1 = document.getElementById("ts1").value.trim();
       const ts2 = document.getElementById("ts2").value.trim();
       const ts3 = document.getElementById("ts3").value.trim();
 
-      let teams = [...document.querySelectorAll(".team")]
-        .map(t => t.value.trim())
+      const teams = [...document.querySelectorAll(".team")]
+        .map(el => el.value.trim())
         .filter(Boolean);
 
       if (!ts1 || !ts2 || !ts3) {
@@ -193,28 +155,58 @@
         return;
       }
 
-      teams = shuffle(teams);
+      const ordreTirage = shuffle(teams);
 
       const poule1 = [ts1];
       const poule2 = [ts2];
       const poule3 = [ts3];
 
-      teams.forEach((team, i) => {
+      ordreTirage.forEach((team, i) => {
         if (i % 3 === 0) poule1.push(team);
         else if (i % 3 === 1) poule2.push(team);
         else poule3.push(team);
       });
 
-      poule1.forEach(team => p1.innerHTML += `<li>${team}</li>`);
-      poule2.forEach(team => p2.innerHTML += `<li>${team}</li>`);
-      poule3.forEach(team => p3.innerHTML += `<li>${team}</li>`);
+      tirageData = {
+        tournoi: "Tirage officiel",
+        ts: [ts1, ts2, ts3],
+        ordreTirage,
+        poules: {
+          poule1,
+          poule2,
+          poule3
+        }
+      };
 
-      officialText.innerHTML = `
+      document.getElementById("resultText").innerHTML = `
+        <p><strong>Ordre du tirage :</strong> ${ordreTirage.join(" → ")}</p>
         <p><strong>Poule 1 :</strong> ${poule1.join(" / ")}</p>
         <p><strong>Poule 2 :</strong> ${poule2.join(" / ")}</p>
         <p><strong>Poule 3 :</strong> ${poule3.join(" / ")}</p>
       `;
-      officialBox.style.display = "block";
+
+      document.getElementById("resultBox").classList.remove("hidden");
+      document.getElementById("publicLinkBox").classList.add("hidden");
+      document.getElementById("openPublicLink").classList.add("hidden");
+    }
+
+    function genererLienPublic() {
+      if (!tirageData) {
+        alert("Lance d'abord le tirage.");
+        return;
+      }
+
+      const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(tirageData)))));
+      const publicUrl = `${window.location.origin}${window.location.pathname.replace('index.html', '')}public.html?data=${encoded}`;
+
+      const box = document.getElementById("publicLinkBox");
+      const btn = document.getElementById("openPublicLink");
+
+      box.textContent = publicUrl;
+      box.classList.remove("hidden");
+
+      btn.href = publicUrl;
+      btn.classList.remove("hidden");
     }
   </script>
 </body>
