@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tirage officiel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827);
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .hero, .card, .poule {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+      backdrop-filter: blur(6px);
+    }
+    .hero {
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+    }
+    .hero p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+    .card {
+      padding: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .roulette {
+      font-size: 28px;
+      font-weight: bold;
+      min-height: 40px;
+      margin: 18px 0;
+      color: #facc15;
+    }
+    .draw-log {
+      text-align: left;
+      max-width: 600px;
+      margin: 20px auto 0;
+      color: #e5e7eb;
+      line-height: 1.8;
+    }
+    .poules {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .poule {
+      padding: 18px;
+    }
+    .poule h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+    ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    .hidden {
+      display: none;
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+    .replay-btn {
+      background: #facc15;
+      color: #111827;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Tirage officiel des poules</h1>
+      <p>Replay du tirage public</p>
+    </div>
+
+    <div class="card">
+      <div id="status">Préparation du replay…</div>
+      <div id="roulette" class="roulette"></div>
+      <div id="drawLog" class="draw-log"></div>
+      <button id="replayBtn" class="replay-btn hidden">Rejouer l’animation</button>
+    </div>
+
+    <div id="poulesSection" class="poules hidden">
+      <div class="poule">
+        <h2>Poule 1</h2>
+        <ul id="p1"></ul>
+      </div>
+      <div class="poule">
+        <h2>Poule 2</h2>
+        <ul id="p2"></ul>
+      </div>
+      <div class="poule">
+        <h2>Poule 3</h2>
+        <ul id="p3"></ul>
+      </div>
+    </div>
+
+    <div class="footer">Page publique de tirage</div>
+  </div>
+
+  <script>
+    let tirageData = null;
+
+    function parseData() {
+      const params = new URLSearchParams(window.location.search);
+      const raw = params.get("data");
+      if (!raw) return null;
+
+      try {
+        return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(raw)))));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function jouerAnimation() {
+      const status = document.getElementById("status");
+      const roulette = document.getElementById("roulette");
+      const log = document.getElementById("drawLog");
+      const replayBtn = document.getElementById("replayBtn");
+      const section = document.getElementById("poulesSection");
+
+      log.innerHTML = "";
+      roulette.textContent = "";
+      section.classList.add("hidden");
+      replayBtn.classList.add("hidden");
+
+      const ordre = [...tirageData.ordreTirage];
+      const restantes = [...ordre];
+
+      status.textContent = "Tirage en cours…";
+
+      for (let i = 0; i < ordre.length; i++) {
+        for (let j = 0; j < 10; j++) {
+          const randomTeam = restantes[Math.floor(Math.random() * restantes.length)];
+          roulette.textContent = randomTeam;
+          await sleep(100);
+        }
+
+        const equipe = ordre[i];
+        roulette.textContent = equipe;
+
+        const pouleIndex = (i % 3) + 1;
+        log.innerHTML += `<div>${i + 1}. <strong>${equipe}</strong> rejoint la <strong>Poule ${pouleIndex}</strong></div>`;
+
+        const idx = restantes.indexOf(equipe);
+        if (idx !== -1) restantes.splice(idx, 1);
+
+        await sleep(700);
+      }
+
+      status.textContent = "Tirage terminé";
+      afficherPoules();
+      section.classList.remove("hidden");
+      replayBtn.classList.remove("hidden");
+    }
+
+    function afficherPoules() {
+      const p1 = document.getElementById("p1");
+      const p2 = document.getElementById("p2");
+      const p3 = document.getElementById("p3");
+
+      p1.innerHTML = "";
+      p2.innerHTML = "";
+      p3.innerHTML = "";
+
+      tirageData.poules.poule1.forEach(team => p1.innerHTML += `<li>${team}</li>`);
+      tirageData.poules.poule2.forEach(team => p2.innerHTML += `<li>${team}</li>`);
+      tirageData.poules.poule3.forEach(team => p3.innerHTML += `<li>${team}</li>`);
+    }
+
+    function init() {
+      tirageData = parseData();
+
+      if (!tirageData) {
+        document.getElementById("status").textContent = "Aucune donnée de tirage trouvée dans le lien.";
+        return;
+      }
+
+      document.getElementById("replayBtn").addEventListener("click", jouerAnimation);
+      jouerAnimation();
+    }
+
+    init();
+  </script>
+</body>
+</html>
