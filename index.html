@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Tirage des poules</title>
+  <title>Admin - Tirage live</title>
   <style>
     body{
       font-family:Arial,sans-serif;
@@ -23,7 +23,7 @@
       margin-bottom:20px;
       box-shadow:0 10px 24px rgba(15,23,42,.08);
     }
-    h1,h2,h3{margin-top:0}
+    h1,h2{margin-top:0}
     .grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -50,6 +50,7 @@
     }
     button.secondary{background:#1d4ed8}
     button.warning{background:#dc2626}
+    button.gold{background:#ca8a04}
     .result{
       margin-top:20px;
       padding:16px;
@@ -76,13 +77,31 @@
       font-size:14px;
       margin-top:6px;
     }
+    .draw-panel{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .badge{
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#e2e8f0;
+      font-weight:bold;
+      margin-right:8px;
+    }
+    .team-line{
+      font-size:18px;
+      margin-top:8px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card">
       <h1>Admin — Tirage live</h1>
-      <p>Prépare le tirage, partage la page publique, puis lance le direct.</p>
+      <p>Prépare le tirage, partage la page publique, puis pilote chaque étape.</p>
       <div class="link-box">
         Lien public à partager :<br>
         <strong id="publicLink"></strong>
@@ -98,7 +117,6 @@
         <input id="eventDate" placeholder="Date / lieu" value="Mars 2026">
         <input id="countdownSeconds" type="number" placeholder="Compte à rebours (secondes)" value="10">
       </div>
-      <div class="hint">Le public verra ces informations avant et pendant le tirage.</div>
     </div>
 
     <div class="card">
@@ -122,10 +140,26 @@
       </div>
 
       <button id="prepareBtn">Préparer le tirage</button>
-      <button id="startBtn" class="secondary">Lancer le direct</button>
+      <button id="startBtn" class="secondary">Lancer le compte à rebours</button>
       <button id="resetBtn" class="warning">Réinitialiser</button>
 
       <div id="resultBox" class="result hidden"></div>
+    </div>
+
+    <div class="card">
+      <h2>Pilotage du direct</h2>
+      <div class="draw-panel">
+        <span class="badge">Étape en cours : <span id="stepInfo">0 / 6</span></span>
+      </div>
+      <div class="team-line"><strong>Équipe courante :</strong> <span id="currentTeamLabel">—</span></div>
+      <div class="team-line"><strong>Poule d’arrivée :</strong> <span id="currentPouleLabel">—</span></div>
+
+      <button id="spinBtn" class="gold">Lancer la roulette</button>
+      <button id="stopBtn" class="secondary">Arrêter sur l’équipe</button>
+      <button id="addBtn">Ajouter à la poule</button>
+      <button id="finishBtn" class="warning">Terminer le tirage</button>
+
+      <div class="hint">Ordre recommandé : roulette → arrêt → ajout à la poule.</div>
     </div>
   </div>
 
@@ -157,6 +191,7 @@
     document.getElementById("publicLink").textContent = publicUrl;
 
     let tirageData = null;
+    let currentIndex = 0;
 
     function shuffle(array) {
       const arr = [...array];
@@ -169,6 +204,10 @@
 
     function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function getPouleLetter(index) {
+      return ["A", "B", "C"][index % 3];
     }
 
     function buildTirage() {
@@ -197,40 +236,49 @@
       }
 
       const ordreTirage = shuffle(teams);
-      const pouleA = [ts1];
-      const pouleB = [ts2];
-      const pouleC = [ts3];
-
-      ordreTirage.forEach((team, i) => {
-        if (i % 3 === 0) pouleA.push(team);
-        else if (i % 3 === 1) pouleB.push(team);
-        else pouleC.push(team);
-      });
 
       return {
         status: "ready",
-        currentIndex: -1,
+        phase: "idle",
+        currentIndex: 0,
         currentTeam: "",
         countdownSeconds,
         title,
         subtitle,
         category,
         dateLabel,
-        startedAt: Date.now(),
         countdownStartAt: null,
         ts: [ts1, ts2, ts3],
         ordreTirage,
-        poules: { pouleA, pouleB, pouleC }
+        poules: {
+          pouleA: [ts1],
+          pouleB: [ts2],
+          pouleC: [ts3]
+        },
+        displayedPoules: {
+          pouleA: [ts1],
+          pouleB: [ts2],
+          pouleC: [ts3]
+        }
       };
+    }
+
+    function refreshAdminInfo() {
+      if (!tirageData) return;
+      const team = tirageData.ordreTirage?.[currentIndex] || "—";
+      const poule = currentIndex < 6 ? `Poule ${getPouleLetter(currentIndex)}` : "—";
+      document.getElementById("stepInfo").textContent = `${Math.min(currentIndex + 1, 6)} / 6`;
+      document.getElementById("currentTeamLabel").textContent = currentIndex < 6 ? team : "—";
+      document.getElementById("currentPouleLabel").textContent = currentIndex < 6 ? poule : "—";
     }
 
     function showResult(data) {
       const box = document.getElementById("resultBox");
       box.innerHTML = `
         <p><strong>Ordre du tirage :</strong> ${data.ordreTirage.join(" → ")}</p>
-        <p><strong>Poule A :</strong> ${data.poules.pouleA.join(" / ")}</p>
-        <p><strong>Poule B :</strong> ${data.poules.pouleB.join(" / ")}</p>
-        <p><strong>Poule C :</strong> ${data.poules.pouleC.join(" / ")}</p>
+        <p><strong>Poule A finale :</strong> ${data.poules.pouleA.join(" / ")}</p>
+        <p><strong>Poule B finale :</strong> ${data.poules.pouleB.join(" / ")}</p>
+        <p><strong>Poule C finale :</strong> ${data.poules.pouleC.join(" / ")}</p>
       `;
       box.classList.remove("hidden");
     }
@@ -240,8 +288,10 @@
       if (!data) return;
 
       tirageData = data;
+      currentIndex = 0;
       await set(tirageRef, data);
       showResult(data);
+      refreshAdminInfo();
       alert("Tirage préparé.");
     });
 
@@ -256,39 +306,102 @@
         return;
       }
 
-      const countdownStartAt = Date.now();
+      currentIndex = 0;
+      refreshAdminInfo();
 
       await update(tirageRef, {
         status: "countdown",
-        countdownStartAt,
-        currentIndex: -1,
-        currentTeam: ""
+        phase: "idle",
+        currentIndex: 0,
+        currentTeam: "",
+        countdownStartAt: Date.now()
       });
 
       await sleep((tirageData.countdownSeconds || 10) * 1000);
 
       await update(tirageRef, {
         status: "live",
-        currentIndex: -1,
+        phase: "ready_for_spin",
+        currentIndex: 0,
         currentTeam: ""
       });
 
-      for (let i = 0; i < tirageData.ordreTirage.length; i++) {
-        const team = tirageData.ordreTirage[i];
+      alert("Compte à rebours terminé. Tu peux maintenant piloter chaque tirage.");
+    });
 
-        await update(tirageRef, {
-          status: "live",
-          currentIndex: i,
-          currentTeam: team
-        });
-
-        await sleep(2600);
+    document.getElementById("spinBtn").addEventListener("click", async () => {
+      if (!tirageData || currentIndex >= 6) {
+        alert("Aucune équipe restante à tirer.");
+        return;
       }
 
       await update(tirageRef, {
+        status: "live",
+        phase: "spinning",
+        currentIndex,
+        currentTeam: ""
+      });
+    });
+
+    document.getElementById("stopBtn").addEventListener("click", async () => {
+      if (!tirageData || currentIndex >= 6) {
+        alert("Aucune équipe restante à tirer.");
+        return;
+      }
+
+      const team = tirageData.ordreTirage[currentIndex];
+
+      await update(tirageRef, {
+        status: "live",
+        phase: "stopped",
+        currentIndex,
+        currentTeam: team
+      });
+    });
+
+    document.getElementById("addBtn").addEventListener("click", async () => {
+      if (!tirageData || currentIndex >= 6) {
+        alert("Aucune équipe restante à ajouter.");
+        return;
+      }
+
+      const team = tirageData.ordreTirage[currentIndex];
+      const letter = getPouleLetter(currentIndex);
+      const key = `poule${letter}`;
+
+      tirageData.displayedPoules[key].push(team);
+
+      await update(tirageRef, {
+        status: "live",
+        phase: "added",
+        currentIndex,
+        currentTeam: team,
+        displayedPoules: tirageData.displayedPoules
+      });
+
+      currentIndex++;
+      refreshAdminInfo();
+
+      if (currentIndex < 6) {
+        await update(tirageRef, {
+          status: "live",
+          phase: "ready_for_spin",
+          currentIndex,
+          currentTeam: ""
+        });
+      } else {
+        alert("Toutes les équipes ont été ajoutées. Clique sur 'Terminer le tirage'.");
+      }
+    });
+
+    document.getElementById("finishBtn").addEventListener("click", async () => {
+      if (!tirageData) return;
+
+      await update(tirageRef, {
         status: "finished",
-        currentTeam: "",
-        currentIndex: tirageData.ordreTirage.length - 1
+        phase: "finished",
+        currentIndex: 5,
+        currentTeam: ""
       });
 
       alert("Tirage terminé.");
@@ -297,6 +410,7 @@
     document.getElementById("resetBtn").addEventListener("click", async () => {
       await set(tirageRef, {
         status: "waiting",
+        phase: "idle",
         message: "Le tirage n'a pas encore commencé.",
         title: "Championnat de Guyane",
         subtitle: "Tirage officiel des poules",
@@ -304,7 +418,11 @@
         dateLabel: "Mars 2026"
       });
       tirageData = null;
+      currentIndex = 0;
       document.getElementById("resultBox").classList.add("hidden");
+      document.getElementById("currentTeamLabel").textContent = "—";
+      document.getElementById("currentPouleLabel").textContent = "—";
+      document.getElementById("stepInfo").textContent = "0 / 6";
       alert("Tirage réinitialisé.");
     });
 
@@ -313,6 +431,7 @@
       if (!snap.exists()) {
         await set(tirageRef, {
           status: "waiting",
+          phase: "idle",
           message: "Le tirage n'a pas encore commencé.",
           title: "Championnat de Guyane",
           subtitle: "Tirage officiel des poules",
