@@ -1,140 +1,221 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Tirage au sort des poules</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tirage des poules</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f6f9;
+      margin: 0;
+      padding: 20px;
+      color: #1f2937;
+    }
 
-<style>
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
 
-body{
-font-family:Arial;
-background:#f4f6f8;
-text-align:center;
-padding:30px;
-}
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
 
-h1{
-margin-bottom:30px;
-}
+    .subtitle {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #6b7280;
+    }
 
-.container{
-display:flex;
-justify-content:center;
-gap:40px;
-margin-top:30px;
-}
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
 
-.poule{
-background:white;
-padding:20px;
-border-radius:10px;
-width:200px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
+    h2 {
+      margin-top: 0;
+    }
 
-button{
-margin-top:20px;
-padding:10px 20px;
-font-size:16px;
-cursor:pointer;
-}
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
 
-input{
-display:block;
-margin:5px auto;
-padding:5px;
-width:200px;
-}
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
 
-</style>
+    button {
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
 
+    button:hover {
+      opacity: 0.95;
+    }
+
+    .poules {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .poule {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    .poule h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .official {
+      margin-top: 25px;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <h1>Tirage au sort des poules</h1>
+    <div class="subtitle">3 têtes de série + 6 équipes tirées au sort</div>
 
-<h1>Tirage au sort des poules</h1>
+    <div class="card">
+      <h2>Têtes de série</h2>
+      <div class="grid">
+        <input id="ts1" placeholder="Tête de série 1 → Poule 1">
+        <input id="ts2" placeholder="Tête de série 2 → Poule 2">
+        <input id="ts3" placeholder="Tête de série 3 → Poule 3">
+      </div>
+    </div>
 
-<h3>Têtes de série</h3>
+    <div class="card">
+      <h2>Équipes à tirer</h2>
+      <div class="grid">
+        <input class="team" placeholder="Équipe 1">
+        <input class="team" placeholder="Équipe 2">
+        <input class="team" placeholder="Équipe 3">
+        <input class="team" placeholder="Équipe 4">
+        <input class="team" placeholder="Équipe 5">
+        <input class="team" placeholder="Équipe 6">
+      </div>
+      <button onclick="tirage()">Lancer le tirage</button>
+    </div>
 
-<input id="ts1" placeholder="Tête de série 1 (Poule 1)">
-<input id="ts2" placeholder="Tête de série 2 (Poule 2)">
-<input id="ts3" placeholder="Tête de série 3 (Poule 3)">
+    <div class="poules">
+      <div class="poule">
+        <h3>Poule 1</h3>
+        <ul id="p1"></ul>
+      </div>
+      <div class="poule">
+        <h3>Poule 2</h3>
+        <ul id="p2"></ul>
+      </div>
+      <div class="poule">
+        <h3>Poule 3</h3>
+        <ul id="p3"></ul>
+      </div>
+    </div>
 
-<h3>Autres équipes</h3>
+    <div class="card official" id="officialBox" style="display:none;">
+      <h2>Version officielle</h2>
+      <div id="officialText"></div>
+    </div>
+  </div>
 
-<input class="team" placeholder="Equipe 1">
-<input class="team" placeholder="Equipe 2">
-<input class="team" placeholder="Equipe 3">
-<input class="team" placeholder="Equipe 4">
-<input class="team" placeholder="Equipe 5">
-<input class="team" placeholder="Equipe 6">
+  <script>
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
-<button onclick="tirage()">Lancer le tirage</button>
+    function tirage() {
+      const p1 = document.getElementById("p1");
+      const p2 = document.getElementById("p2");
+      const p3 = document.getElementById("p3");
+      const officialBox = document.getElementById("officialBox");
+      const officialText = document.getElementById("officialText");
 
-<div class="container">
+      p1.innerHTML = "";
+      p2.innerHTML = "";
+      p3.innerHTML = "";
 
-<div class="poule">
-<h2>Poule 1</h2>
-<ul id="p1"></ul>
-</div>
+      const ts1 = document.getElementById("ts1").value.trim();
+      const ts2 = document.getElementById("ts2").value.trim();
+      const ts3 = document.getElementById("ts3").value.trim();
 
-<div class="poule">
-<h2>Poule 2</h2>
-<ul id="p2"></ul>
-</div>
+      let teams = [...document.querySelectorAll(".team")]
+        .map(t => t.value.trim())
+        .filter(Boolean);
 
-<div class="poule">
-<h2>Poule 3</h2>
-<ul id="p3"></ul>
-</div>
+      if (!ts1 || !ts2 || !ts3) {
+        alert("Merci de renseigner les 3 têtes de série.");
+        return;
+      }
 
-</div>
+      if (teams.length !== 6) {
+        alert("Merci de renseigner exactement 6 équipes à tirer.");
+        return;
+      }
 
-<script>
+      teams = shuffle(teams);
 
-function shuffle(array){
-for(let i=array.length-1;i>0;i--){
-const j=Math.floor(Math.random()*(i+1));
-[array[i],array[j]]=[array[j],array[i]];
-}
-return array;
-}
+      const poule1 = [ts1];
+      const poule2 = [ts2];
+      const poule3 = [ts3];
 
-function tirage(){
+      teams.forEach((team, i) => {
+        if (i % 3 === 0) poule1.push(team);
+        else if (i % 3 === 1) poule2.push(team);
+        else poule3.push(team);
+      });
 
-let poule1=document.getElementById("p1")
-let poule2=document.getElementById("p2")
-let poule3=document.getElementById("p3")
+      poule1.forEach(team => p1.innerHTML += `<li>${team}</li>`);
+      poule2.forEach(team => p2.innerHTML += `<li>${team}</li>`);
+      poule3.forEach(team => p3.innerHTML += `<li>${team}</li>`);
 
-poule1.innerHTML=""
-poule2.innerHTML=""
-poule3.innerHTML=""
-
-let ts1=document.getElementById("ts1").value
-let ts2=document.getElementById("ts2").value
-let ts3=document.getElementById("ts3").value
-
-poule1.innerHTML+=`<li>${ts1}</li>`
-poule2.innerHTML+=`<li>${ts2}</li>`
-poule3.innerHTML+=`<li>${ts3}</li>`
-
-let teams=[...document.querySelectorAll(".team")].map(t=>t.value)
-
-teams=shuffle(teams)
-
-teams.forEach((team,i)=>{
-
-let li=`<li>${team}</li>`
-
-if(i%3==0) poule1.innerHTML+=li
-if(i%3==1) poule2.innerHTML+=li
-if(i%3==2) poule3.innerHTML+=li
-
-})
-
-}
-
-</script>
-
+      officialText.innerHTML = `
+        <p><strong>Poule 1 :</strong> ${poule1.join(" / ")}</p>
+        <p><strong>Poule 2 :</strong> ${poule2.join(" / ")}</p>
+        <p><strong>Poule 3 :</strong> ${poule3.join(" / ")}</p>
+      `;
+      officialBox.style.display = "block";
+    }
+  </script>
 </body>
 </html>
