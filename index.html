@@ -9,20 +9,21 @@
       font-family:Arial,sans-serif;
       margin:0;
       padding:20px;
-      background:#f3f6f9;
-      color:#1f2937;
+      background:linear-gradient(180deg,#f8fafc,#e2e8f0);
+      color:#0f172a;
     }
     .container{
-      max-width:1000px;
+      max-width:1100px;
       margin:0 auto;
     }
     .card{
       background:#fff;
-      border-radius:14px;
-      padding:20px;
+      border-radius:18px;
+      padding:22px;
       margin-bottom:20px;
-      box-shadow:0 6px 18px rgba(0,0,0,.08);
+      box-shadow:0 10px 24px rgba(15,23,42,.08);
     }
+    h1,h2,h3{margin-top:0}
     .grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -31,8 +32,8 @@
     input{
       width:100%;
       padding:12px;
-      border:1px solid #d1d5db;
-      border-radius:10px;
+      border:1px solid #cbd5e1;
+      border-radius:12px;
       box-sizing:border-box;
       font-size:15px;
     }
@@ -40,20 +41,19 @@
       background:#0f766e;
       color:#fff;
       border:none;
-      border-radius:10px;
+      border-radius:12px;
       padding:14px 18px;
       font-size:16px;
       cursor:pointer;
       margin-top:12px;
       margin-right:8px;
     }
-    button.secondary{
-      background:#1d4ed8;
-    }
+    button.secondary{background:#1d4ed8}
+    button.warning{background:#dc2626}
     .result{
       margin-top:20px;
       padding:16px;
-      border-radius:12px;
+      border-radius:14px;
       background:#ecfeff;
       border:1px solid #a5f3fc;
     }
@@ -61,18 +61,28 @@
       word-break:break-all;
       background:#f8fafc;
       border:1px solid #cbd5e1;
-      border-radius:10px;
+      border-radius:12px;
       padding:12px;
       margin-top:12px;
     }
-    .hidden{display:none;}
+    .hidden{display:none}
+    .meta{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:12px;
+    }
+    .hint{
+      color:#475569;
+      font-size:14px;
+      margin-top:6px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card">
-      <h1>Admin — Tirage des poules</h1>
-      <p>Cette page pilote le tirage en direct.</p>
+      <h1>Admin — Tirage live</h1>
+      <p>Prépare le tirage, partage la page publique, puis lance le direct.</p>
       <div class="link-box">
         Lien public à partager :<br>
         <strong id="publicLink"></strong>
@@ -80,11 +90,23 @@
     </div>
 
     <div class="card">
+      <h2>Habillage officiel</h2>
+      <div class="meta">
+        <input id="eventTitle" placeholder="Titre de l'événement" value="Championnat de Guyane">
+        <input id="eventSubtitle" placeholder="Sous-titre" value="Tirage officiel des poules">
+        <input id="eventCategory" placeholder="Discipline" value="Beach Tennis">
+        <input id="eventDate" placeholder="Date / lieu" value="Mars 2026">
+        <input id="countdownSeconds" type="number" placeholder="Compte à rebours (secondes)" value="10">
+      </div>
+      <div class="hint">Le public verra ces informations avant et pendant le tirage.</div>
+    </div>
+
+    <div class="card">
       <h2>Têtes de série</h2>
       <div class="grid">
-        <input id="ts1" placeholder="Tête de série 1 → Poule 1">
-        <input id="ts2" placeholder="Tête de série 2 → Poule 2">
-        <input id="ts3" placeholder="Tête de série 3 → Poule 3">
+        <input id="ts1" placeholder="Tête de série 1 → Poule A">
+        <input id="ts2" placeholder="Tête de série 2 → Poule B">
+        <input id="ts3" placeholder="Tête de série 3 → Poule C">
       </div>
     </div>
 
@@ -100,8 +122,8 @@
       </div>
 
       <button id="prepareBtn">Préparer le tirage</button>
-      <button id="startBtn" class="secondary">Lancer le tirage en direct</button>
-      <button id="resetBtn">Réinitialiser</button>
+      <button id="startBtn" class="secondary">Lancer le direct</button>
+      <button id="resetBtn" class="warning">Réinitialiser</button>
 
       <div id="resultBox" class="result hidden"></div>
     </div>
@@ -150,6 +172,12 @@
     }
 
     function buildTirage() {
+      const title = document.getElementById("eventTitle").value.trim();
+      const subtitle = document.getElementById("eventSubtitle").value.trim();
+      const category = document.getElementById("eventCategory").value.trim();
+      const dateLabel = document.getElementById("eventDate").value.trim();
+      const countdownSeconds = parseInt(document.getElementById("countdownSeconds").value || "10", 10);
+
       const ts1 = document.getElementById("ts1").value.trim();
       const ts2 = document.getElementById("ts2").value.trim();
       const ts3 = document.getElementById("ts3").value.trim();
@@ -169,24 +197,30 @@
       }
 
       const ordreTirage = shuffle(teams);
-      const poule1 = [ts1];
-      const poule2 = [ts2];
-      const poule3 = [ts3];
+      const pouleA = [ts1];
+      const pouleB = [ts2];
+      const pouleC = [ts3];
 
       ordreTirage.forEach((team, i) => {
-        if (i % 3 === 0) poule1.push(team);
-        else if (i % 3 === 1) poule2.push(team);
-        else poule3.push(team);
+        if (i % 3 === 0) pouleA.push(team);
+        else if (i % 3 === 1) pouleB.push(team);
+        else pouleC.push(team);
       });
 
       return {
         status: "ready",
         currentIndex: -1,
         currentTeam: "",
+        countdownSeconds,
+        title,
+        subtitle,
+        category,
+        dateLabel,
         startedAt: Date.now(),
+        countdownStartAt: null,
         ts: [ts1, ts2, ts3],
         ordreTirage,
-        poules: { poule1, poule2, poule3 }
+        poules: { pouleA, pouleB, pouleC }
       };
     }
 
@@ -194,9 +228,9 @@
       const box = document.getElementById("resultBox");
       box.innerHTML = `
         <p><strong>Ordre du tirage :</strong> ${data.ordreTirage.join(" → ")}</p>
-        <p><strong>Poule 1 :</strong> ${data.poules.poule1.join(" / ")}</p>
-        <p><strong>Poule 2 :</strong> ${data.poules.poule2.join(" / ")}</p>
-        <p><strong>Poule 3 :</strong> ${data.poules.poule3.join(" / ")}</p>
+        <p><strong>Poule A :</strong> ${data.poules.pouleA.join(" / ")}</p>
+        <p><strong>Poule B :</strong> ${data.poules.pouleB.join(" / ")}</p>
+        <p><strong>Poule C :</strong> ${data.poules.pouleC.join(" / ")}</p>
       `;
       box.classList.remove("hidden");
     }
@@ -208,7 +242,7 @@
       tirageData = data;
       await set(tirageRef, data);
       showResult(data);
-      alert("Tirage préparé. Le public verra que le tirage est prêt, mais pas encore lancé.");
+      alert("Tirage préparé.");
     });
 
     document.getElementById("startBtn").addEventListener("click", async () => {
@@ -221,6 +255,17 @@
         alert("Prépare d'abord le tirage.");
         return;
       }
+
+      const countdownStartAt = Date.now();
+
+      await update(tirageRef, {
+        status: "countdown",
+        countdownStartAt,
+        currentIndex: -1,
+        currentTeam: ""
+      });
+
+      await sleep((tirageData.countdownSeconds || 10) * 1000);
 
       await update(tirageRef, {
         status: "live",
@@ -237,7 +282,7 @@
           currentTeam: team
         });
 
-        await sleep(2200);
+        await sleep(2600);
       }
 
       await update(tirageRef, {
@@ -252,7 +297,11 @@
     document.getElementById("resetBtn").addEventListener("click", async () => {
       await set(tirageRef, {
         status: "waiting",
-        message: "Le tirage n'a pas encore commencé."
+        message: "Le tirage n'a pas encore commencé.",
+        title: "Championnat de Guyane",
+        subtitle: "Tirage officiel des poules",
+        category: "Beach Tennis",
+        dateLabel: "Mars 2026"
       });
       tirageData = null;
       document.getElementById("resultBox").classList.add("hidden");
@@ -264,7 +313,11 @@
       if (!snap.exists()) {
         await set(tirageRef, {
           status: "waiting",
-          message: "Le tirage n'a pas encore commencé."
+          message: "Le tirage n'a pas encore commencé.",
+          title: "Championnat de Guyane",
+          subtitle: "Tirage officiel des poules",
+          category: "Beach Tennis",
+          dateLabel: "Mars 2026"
         });
       }
     }
