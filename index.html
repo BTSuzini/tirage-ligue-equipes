@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Tirage au sort des poules</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+text-align:center;
+padding:30px;
+}
+
+h1{
+margin-bottom:30px;
+}
+
+.container{
+display:flex;
+justify-content:center;
+gap:40px;
+margin-top:30px;
+}
+
+.poule{
+background:white;
+padding:20px;
+border-radius:10px;
+width:200px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+button{
+margin-top:20px;
+padding:10px 20px;
+font-size:16px;
+cursor:pointer;
+}
+
+input{
+display:block;
+margin:5px auto;
+padding:5px;
+width:200px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Tirage au sort des poules</h1>
+
+<h3>Têtes de série</h3>
+
+<input id="ts1" placeholder="Tête de série 1 (Poule 1)">
+<input id="ts2" placeholder="Tête de série 2 (Poule 2)">
+<input id="ts3" placeholder="Tête de série 3 (Poule 3)">
+
+<h3>Autres équipes</h3>
+
+<input class="team" placeholder="Equipe 1">
+<input class="team" placeholder="Equipe 2">
+<input class="team" placeholder="Equipe 3">
+<input class="team" placeholder="Equipe 4">
+<input class="team" placeholder="Equipe 5">
+<input class="team" placeholder="Equipe 6">
+
+<button onclick="tirage()">Lancer le tirage</button>
+
+<div class="container">
+
+<div class="poule">
+<h2>Poule 1</h2>
+<ul id="p1"></ul>
+</div>
+
+<div class="poule">
+<h2>Poule 2</h2>
+<ul id="p2"></ul>
+</div>
+
+<div class="poule">
+<h2>Poule 3</h2>
+<ul id="p3"></ul>
+</div>
+
+</div>
+
+<script>
+
+function shuffle(array){
+for(let i=array.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
+return array;
+}
+
+function tirage(){
+
+let poule1=document.getElementById("p1")
+let poule2=document.getElementById("p2")
+let poule3=document.getElementById("p3")
+
+poule1.innerHTML=""
+poule2.innerHTML=""
+poule3.innerHTML=""
+
+let ts1=document.getElementById("ts1").value
+let ts2=document.getElementById("ts2").value
+let ts3=document.getElementById("ts3").value
+
+poule1.innerHTML+=`<li>${ts1}</li>`
+poule2.innerHTML+=`<li>${ts2}</li>`
+poule3.innerHTML+=`<li>${ts3}</li>`
+
+let teams=[...document.querySelectorAll(".team")].map(t=>t.value)
+
+teams=shuffle(teams)
+
+teams.forEach((team,i)=>{
+
+let li=`<li>${team}</li>`
+
+if(i%3==0) poule1.innerHTML+=li
+if(i%3==1) poule2.innerHTML+=li
+if(i%3==2) poule3.innerHTML+=li
+
+})
+
+}
+
+</script>
+
+</body>
+</html>
